@@ -49,7 +49,7 @@ implementation {
 			}
 		} else if (type == AM_SENSOR_RESPONSE) {
 			if (len == sizeof(WirelessNetworkPayloadMsg3)) {
-				WirelessNetworkPayloadMsg3*	req	= (WirelessNetworkPayloadMsg3*) payload;
+				WirelessNetworkPayloadMsg3* req	= (WirelessNetworkPayloadMsg3*) payload;
 
 				if (req->pl_idMsg > versionID) {
 					versionID = req->pl_idMsg;
@@ -96,15 +96,21 @@ implementation {
 		topoReq->pl_parentNode = parentNode;
 		topoReq->pl_originNode = TOS_NODE_ID;
 
-		//Tenta PEGA OS DADOS DOS SENSORES
+		//Tenta PEGA OS DADOS DOS SENSORES - ?
 		int i = 0;		
 		while(i < 10 && call Read.read() != SUCCESS ){
 			i++;
 		}
+		
 
 
 		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			post respondSensorReq();
+	}
+
+	// msg ja vem com payload?
+	task void forwardBroadcastMessage(message_t* msg){
+	
 	}
 
 	//The Read interface (in tinyos-2.x/tos/interfaces) can be used to read a *single* piece of sensor data,
