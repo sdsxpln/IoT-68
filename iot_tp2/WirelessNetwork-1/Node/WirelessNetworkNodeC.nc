@@ -12,7 +12,8 @@ module WirelessNetworkC{
 	uses interface AMSend;
 	uses interface Receive;
 	uses interface SplitControl as AMControl;
-	uses interface Read<uint16_t>;
+	uses interface Read<uint16_t> as Temperature;
+	uses interface Read<uint16_t> as Luminosity;
 }
 
 implementation {
@@ -21,7 +22,9 @@ implementation {
 	message_t pkt;
 	uint16_t versionID;
 	am_addr_t parentNode;
-
+	
+	
+	
 	event void Boot.booted(){
 		AMControl.start();  //initializing radios
 	}
@@ -45,6 +48,7 @@ implementation {
 					parentNode = call AMPacket.source(msg);
 					versionID = req->pl_idMsg;
 					post	respondTopoReq();
+					post	forwardTopoReq();
 				}
 			}
 		} else if (type == AM_SENSOR_RESPONSE) {
@@ -63,16 +67,6 @@ implementation {
 	
 
 	event void AMSend.sendDone(message_t* msg, error_t err)	{
-		/*if (err == SUCCESS)	{
-				// Prepare next packet if needed
-		}
-		else {
-			//TRATAR QUAL REQUISAO FOI FEITA
-			post respondTopoReq();
-			post respondSensorReq();
-
-		}*/
-
 		if(err != SUCCESS){
 			am_id_t type = call AMPacket.type(msg);
 			if (type == AM_TOPO_REQ) post	respondTopoReq();
@@ -81,6 +75,7 @@ implementation {
 	}
 
 	task void respondTopoReq()	{
+		WirelessNetworkPayloadMsg2 output;
 		WirelessNetworkPayloadMsg2* topoReq = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
 		topoReq->pl_idMsg = versionID;
 		topoReq->pl_parentNode = parentNode;
@@ -91,30 +86,44 @@ implementation {
 	}
 
 	task void respondSensorReq()	{
+		WirelessNetworkPayloadMsg4 output;
 		WirelessNetworkPayloadMsg4* sensorReq = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
 		topoReq->pl_idMsg = versionID;
 		topoReq->pl_parentNode = parentNode;
 		topoReq->pl_originNode = TOS_NODE_ID;
 
-		//Tenta PEGA OS DADOS DOS SENSORES - ?
-		int i = 0;		
-		while(i < 10 && call Read.read() != SUCCESS ){
-			i++;
-		}
+		//Tenta pegar os dados dos sensores
+		call Luminosity.read()
+		call Temperature.read()
 		
-
-
 		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			post respondSensorReq();
+		
 	}
 
-	// msg ja vem com payload?
-	task void forwardBroadcastMessage(message_t* msg){
 	
+	task void forwardTopoReq(){
+		WirelessNetworkPayloadMsg1 output;
+		WirelessNetworkPayloadMsg1* sendTopoReq = (WirelessNetworkPayloadMsg1*) call Packet.getPayload(&output, sizeof(WirelessNetworkPayloadMsg1));
+		sendTopoReq->pl_idMsg = versionID;
+		
+		if(call	AMSend.send(AM_BROADCAST_ADDR,	&output, sizeof(WirelessNetworkPayloadMsg1)) != SUCCESS)
+			post forwardTopoReq();
+		
+		// se der errado, trocar a msg output por sendTopoReq
+		
 	}
 
-	//The Read interface (in tinyos-2.x/tos/interfaces) can be used to read a *single* piece of sensor data,
-	command error_t read();
-	event void readDone( error_t result, val_t val );
+	event void Temperature.readDone( error_t result, uint16_t val ){
+		if(result == SUCCESS){
+			output = val;
+		}
+	}
+	
+	event void Luminosity.readDone( error_t result, uint16_t val ){
+		if(result == SUCCESS){
+			output = val;
+		}
+	}
 }
 

@@ -23,5 +23,6 @@ implementation{
 	App.AMSend -> AMSenderC;
 	App.Receive -> AMReceiverC;
 	App.AMControl -> ActiveMessageC;
-	App.Read -> Sensor;
+	App.Temperature -> TempC;
+	App.Luminosity -> PhotoC;
 }
