@@ -3,6 +3,7 @@
 */
 
 #include "WirelessNetworkMessages.h"
+#include <time.h>
 
 module WirelessNetworkC{
 
@@ -22,7 +23,8 @@ implementation {
 	message_t pkt;
 	uint16_t versionID;
 	am_addr_t parentNode;
-	
+	uint16_t tempVal;
+	uint16_t lumVal;
 	
 	
 	event void Boot.booted(){
@@ -88,13 +90,16 @@ implementation {
 	task void respondSensorReq()	{
 		WirelessNetworkPayloadMsg4 output;
 		WirelessNetworkPayloadMsg4* sensorReq = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
-		topoReq->pl_idMsg = versionID;
-		topoReq->pl_parentNode = parentNode;
-		topoReq->pl_originNode = TOS_NODE_ID;
-
+		
 		//Tenta pegar os dados dos sensores
-		call Luminosity.read()
-		call Temperature.read()
+		call Luminosity.read();
+		call Temperature.read();
+
+		sensorReq->pl_idMsg = versionID;
+		sensorReq->pl_LumData = lumVal
+		sensorReq->pl_TempData = tempVal;
+		sensorReq->pl_Origin  = TOS_NODE_ID;
+		sensorReq-> extra_data[0] =  time(NULL); //timestamp
 		
 		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			post respondSensorReq();
@@ -116,13 +121,13 @@ implementation {
 
 	event void Temperature.readDone( error_t result, uint16_t val ){
 		if(result == SUCCESS){
-			output = val;
+			tempVal = val;
 		}
 	}
 	
 	event void Luminosity.readDone( error_t result, uint16_t val ){
 		if(result == SUCCESS){
-			output = val;
+			lumVal = val;
 		}
 	}
 }
