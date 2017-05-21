@@ -1,5 +1,10 @@
 /*
 	Configuration File 
+
+
+	If you want to assign a different identifier for each node you have to enter:
+	make mica2 reinstall.ID mib510,serialport
+	Where ID is the identifier you want to give to your mote, for example 0,1,32,...
 */
 
 configuration WirelessNetworkAppC{
