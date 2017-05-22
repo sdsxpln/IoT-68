@@ -21,9 +21,9 @@ implementation {
 
 	bool busy = FALSE;
 	message_t pkt;
-	uint16_t versionID;
+	uint16_t versionID = 0;
 	am_addr_t parentNode;
-	uint16_t tempVal;
+	uint16_t temperatureVal;
 	uint16_t lumVal;
 	
 	
@@ -50,10 +50,10 @@ implementation {
 					parentNode = call AMPacket.source(msg);
 					versionID = req->pl_idMsg;
 					post	respondTopoReq();
-					post	forwardTopoReq();
+					
 				}
 			}
-		} else if (type == AM_SENSOR_RESPONSE) {
+		} else if (type == AM_SENSOR_REQ) {
 			if (len == sizeof(WirelessNetworkPayloadMsg3)) {
 				WirelessNetworkPayloadMsg3* req	= (WirelessNetworkPayloadMsg3*) payload;
 
@@ -62,6 +62,19 @@ implementation {
 					post respondSensorReq();
 				}
 			}
+		} else if(type == AM_SENSOR_RESPONSE || type == AM_TOPO_RESPONSE){
+			if (len == sizeof(WirelessNetworkPayloadMsg4) ) {
+				if (req->pl_idMsg > versionID) {
+					versionID = req->pl_idMsg;
+					forwardSensorReq(payload);
+				}
+			} else if(len == sizeof(WirelessNetworkPayloadMsg2)){
+				if (req->pl_idMsg > versionID) {
+					versionID = req->pl_idMsg;
+					forwardTopoReq(payload);
+				}
+			}
+			
 		}
 
 		return msg;
@@ -107,21 +120,25 @@ implementation {
 	}
 
 	
-	task void forwardTopoReq(){
-		WirelessNetworkPayloadMsg1 output;
-		WirelessNetworkPayloadMsg1* sendTopoReq = (WirelessNetworkPayloadMsg1*) call Packet.getPayload(&output, sizeof(WirelessNetworkPayloadMsg1));
-		sendTopoReq->pl_idMsg = versionID;
-		
-		if(call	AMSend.send(AM_BROADCAST_ADDR,	&output, sizeof(WirelessNetworkPayloadMsg1)) != SUCCESS)
+	void forwardTopoReq(void* payload){
+				
+		if(call	AMSend.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
 			post forwardTopoReq();
 		
 		// se der errado, trocar a msg output por sendTopoReq
 		
 	}
 
+	void forwardSensorReq(void* payload){
+		
+		if(call	AMSend.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
+			forwardTopoReq();		
+		
+	}
+
 	event void Temperature.readDone( error_t result, uint16_t val ){
 		if(result == SUCCESS){
-			tempVal = val;
+			temperatureVal = val;
 		}
 	}
 	

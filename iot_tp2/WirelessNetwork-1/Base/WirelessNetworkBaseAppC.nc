@@ -18,7 +18,6 @@ implementation{
 	components SerialActiveMessageC;
 	components new SerialAMSenderC(AM_BLINKTORADIOMSG);
 
-
 	App.Boot -> MainC;
 	App.Timer0 -> Timer0;
 	App.Packet -> AMSenderC;
