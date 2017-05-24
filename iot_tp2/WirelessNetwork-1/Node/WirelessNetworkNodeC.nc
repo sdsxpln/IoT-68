@@ -2,10 +2,13 @@
 	Component File - definition (implementation) of the component
 */
 
-#include "WirelessNetworkMessages.h"
-#include <time.h>
+#include "WirelessNetworkMsg1.h"
+#include "WirelessNetworkMsg2.h"
+#include "WirelessNetworkMsg3.h"
+#include "WirelessNetworkMsg4.h"
+//#include <time.h>
 
-module WirelessNetworkC{
+module WirelessNetworkNodeC{
 
 	uses interface Boot;
 	uses interface Packet;
@@ -28,7 +31,7 @@ implementation {
 	
 	
 	event void Boot.booted(){
-		AMControl.start();  //initializing radios
+		call AMControl.start();  //initializing radios
 	}
 
 	event void AMControl.startDone(error_t err) {
@@ -39,10 +42,58 @@ implementation {
 
 	event void AMControl.stopDone(error_t err) { } // do nothing
 
+task void respondTopoReq()	{
+		WirelessNetworkPayloadMsg2 output;
+		WirelessNetworkPayloadMsg2* topoReq = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
+		topoReq->pl_idMsg = versionID;
+		topoReq->pl_parentNode = parentNode;
+		topoReq->pl_originNode = TOS_NODE_ID;
+
+		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
+			post respondTopoReq();
+	}
+
+	task void respondSensorReq()	{
+		WirelessNetworkPayloadMsg4 output;
+		WirelessNetworkPayloadMsg4* sensorReq = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
+		
+		//Tenta pegar os dados dos sensores
+		call Luminosity.read();
+		call Temperature.read();
+
+		sensorReq->pl_idMsg = versionID;
+		sensorReq->pl_LumData = lumVal;
+		sensorReq->pl_TempData = temperatureVal;
+		sensorReq->pl_Origin  = TOS_NODE_ID;
+		//sensorReq-> extra_data[0] =  time(NULL); //timestamp
+		
+		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
+			post respondSensorReq();
+		
+	}
+
+	
+	void forwardTopoReq(void* payload){
+				
+		if(call	AMSend.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
+			forwardTopoReq(payload);
+		
+		// se der errado, trocar a msg output por sendTopoReq
+		
+	}
+
+	void forwardSensorReq(void* payload){
+		
+		if(call	AMSend.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
+			forwardTopoReq(payload);		
+		
+	}
+
+
 	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
 
-		if (type == AM_TOPO_REQ) {
+		if (type == AM_WIRELESSNETWORKPAYLOADMSG1) {
 			if (len == sizeof(WirelessNetworkPayloadMsg1)) {
 				WirelessNetworkPayloadMsg1* req = (WirelessNetworkPayloadMsg1*) payload;
 
@@ -53,7 +104,7 @@ implementation {
 					
 				}
 			}
-		} else if (type == AM_SENSOR_REQ) {
+		} else if (type == AM_WIRELESSNETWORKPAYLOADMSG3) {
 			if (len == sizeof(WirelessNetworkPayloadMsg3)) {
 				WirelessNetworkPayloadMsg3* req	= (WirelessNetworkPayloadMsg3*) payload;
 
@@ -62,13 +113,15 @@ implementation {
 					post respondSensorReq();
 				}
 			}
-		} else if(type == AM_SENSOR_RESPONSE || type == AM_TOPO_RESPONSE){
+		} else if(type == AM_WIRELESSNETWORKPAYLOADMSG2 || type == AM_WIRELESSNETWORKPAYLOADMSG4){
 			if (len == sizeof(WirelessNetworkPayloadMsg4) ) {
+				WirelessNetworkPayloadMsg4* req	= (WirelessNetworkPayloadMsg4*) payload;
 				if (req->pl_idMsg > versionID) {
 					versionID = req->pl_idMsg;
 					forwardSensorReq(payload);
 				}
 			} else if(len == sizeof(WirelessNetworkPayloadMsg2)){
+				WirelessNetworkPayloadMsg2* req	= (WirelessNetworkPayloadMsg2*) payload;
 				if (req->pl_idMsg > versionID) {
 					versionID = req->pl_idMsg;
 					forwardTopoReq(payload);
@@ -89,52 +142,7 @@ implementation {
 		}
 	}
 
-	task void respondTopoReq()	{
-		WirelessNetworkPayloadMsg2 output;
-		WirelessNetworkPayloadMsg2* topoReq = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
-		topoReq->pl_idMsg = versionID;
-		topoReq->pl_parentNode = parentNode;
-		topoReq->pl_originNode = TOS_NODE_ID;
-
-		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
-			post respondTopoReq();
-	}
-
-	task void respondSensorReq()	{
-		WirelessNetworkPayloadMsg4 output;
-		WirelessNetworkPayloadMsg4* sensorReq = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
-		
-		//Tenta pegar os dados dos sensores
-		call Luminosity.read();
-		call Temperature.read();
-
-		sensorReq->pl_idMsg = versionID;
-		sensorReq->pl_LumData = lumVal
-		sensorReq->pl_TempData = tempVal;
-		sensorReq->pl_Origin  = TOS_NODE_ID;
-		sensorReq-> extra_data[0] =  time(NULL); //timestamp
-		
-		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
-			post respondSensorReq();
-		
-	}
-
 	
-	void forwardTopoReq(void* payload){
-				
-		if(call	AMSend.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
-			post forwardTopoReq();
-		
-		// se der errado, trocar a msg output por sendTopoReq
-		
-	}
-
-	void forwardSensorReq(void* payload){
-		
-		if(call	AMSend.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
-			forwardTopoReq();		
-		
-	}
 
 	event void Temperature.readDone( error_t result, uint16_t val ){
 		if(result == SUCCESS){

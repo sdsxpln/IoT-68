@@ -7,19 +7,20 @@
 	Where ID is the identifier you want to give to your mote, for example 0,1,32,...
 */
 
-configuration WirelessNetworkAppC{
+configuration WirelessNetworkNodeAppC{
 }
 implementation{
-	components WirelessNetworkNodeC as App,
-	components Mainc;
+	components WirelessNetworkNodeC as App;
+	components MainC;
 	components ActiveMessageC;
-	components new AMSenderC(); // nao sei se precisa de algum parametro p instanciar
-	components Packet;
-	components AMPacket;
-	components AMSend;
-	components Receive;
-	components SplitControl;
-	components new DemoSensorC() as Sensor;
+	components new AMSenderC(1); // precisa de parametro p instanciar
+	//components Packet;
+	//components AMPacket;
+	//components AMSend;
+	components new AMReceiverC(1);
+	//components SplitControl;
+	components new DemoSensorC() as TempC;
+	components new DemoSensorC() as PhotoC;
 
 
 	App.Boot -> MainC.Boot;
