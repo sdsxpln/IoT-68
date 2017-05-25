@@ -31,9 +31,8 @@ implementation{
 
 	App.Boot -> MainC;
 	App.Leds -> LedsC;
-	App.Packet -> AMSenderC;
-	App.AMPacket -> AMSenderC;
-	App.AMSend -> AMSenderC;
+	App.Packet -> AMS1;
+	App.AMPacket -> AMS1;
 	App.AMS1 -> AMS1;
 	App.AMS2 -> AMS2;
 	App.AMS3 -> AMS3;

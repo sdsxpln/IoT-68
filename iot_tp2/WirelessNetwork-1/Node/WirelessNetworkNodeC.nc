@@ -66,7 +66,7 @@ implementation {
 		topoReq->pl_parentNode = parentNode;
 		topoReq->pl_originNode = TOS_NODE_ID;
 
-		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
+		if(call	AMS2.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
 			post respondTopoReq();
 		else
 			report_reponse();
@@ -86,7 +86,7 @@ implementation {
 		sensorReq->pl_Origin  = TOS_NODE_ID;
 		//sensorReq-> extra_data[0] =  time(NULL); //timestamp
 		
-		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
+		if(call	AMS4.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			post respondSensorReq();
 		else
 			report_reponse();
@@ -95,7 +95,7 @@ implementation {
 	
 	void forwardTopoReq(void* payload){
 				
-		if(call	AMSend.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
+		if(call	AMS1.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
 			forwardTopoReq(payload);
 		else
 			report_broadcast();
@@ -105,7 +105,7 @@ implementation {
 
 	void forwardSensorReq(void* payload){
 		
-		if(call	AMSend.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
+		if(call	AMS3.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			forwardTopoReq(payload);		
 		else
 			report_broadcast();
@@ -114,20 +114,18 @@ implementation {
 	event message_t* AMR1.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
 
-		call Leds.led0Toggle();
 
 		if (type == AM_WIRELESSNETWORKPAYLOADMSG1 && len == sizeof(WirelessNetworkPayloadMsg1)) {
 
 			WirelessNetworkPayloadMsg1* req = (WirelessNetworkPayloadMsg1*) payload;
 
 			if (req->pl_idMsg > versionID) {
+				report_received();
 				parentNode = call AMPacket.source(msg);
 				versionID = req->pl_idMsg;
-				post	respondTopoReq();
-				
+				respondTopoReq();
 			}
 		}
-
 
 		return msg;
 	}
@@ -135,7 +133,6 @@ implementation {
 	event message_t* AMR2.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
 
-		call Leds.led0Toggle();
 		if (type == AM_WIRELESSNETWORKPAYLOADMSG2 && len == sizeof(WirelessNetworkPayloadMsg4)){
 			WirelessNetworkPayloadMsg4* req	= (WirelessNetworkPayloadMsg4*) payload;
 			if (req->pl_idMsg > versionID) {
@@ -149,15 +146,14 @@ implementation {
 	event message_t* AMR3.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
 
-		call Leds.led0Toggle();
 		if (type == AM_WIRELESSNETWORKPAYLOADMSG3 && len == sizeof(WirelessNetworkPayloadMsg3)) {
 
 			WirelessNetworkPayloadMsg3* req	= (WirelessNetworkPayloadMsg3*) payload;
 
 			if (req->pl_idMsg > versionID) {
-				versionID = req->pl_idMsg;
 				report_received();
-				post respondSensorReq();
+				versionID = req->pl_idMsg;
+				respondSensorReq();
 			}
 
 		}
@@ -166,8 +162,6 @@ implementation {
 
 	event message_t* AMR4.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
-
-		call Leds.led0Toggle();
 
 		if(type == AM_WIRELESSNETWORKPAYLOADMSG4 && len == sizeof(WirelessNetworkPayloadMsg2)){
 
