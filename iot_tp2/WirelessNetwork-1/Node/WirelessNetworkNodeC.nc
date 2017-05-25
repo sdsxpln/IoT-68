@@ -13,8 +13,16 @@ module WirelessNetworkNodeC @safe(){
 	uses interface Boot;
 	uses interface Packet;
 	uses interface AMPacket;
-	uses interface AMSend;
-	uses interface Receive;
+	
+	uses interface AMSend as AMS1;
+	uses interface AMSend as AMS2;
+	uses interface AMSend as AMS3;
+	uses interface AMSend as AMS4;
+	uses interface Receive as AMR1;
+	uses interface Receive as AMR2;
+	uses interface Receive as AMR3;
+	uses interface Receive as AMR4;
+
 	uses interface SplitControl as RadioControl;
 	uses interface Read<uint16_t> as Temperature;
 	uses interface Read<uint16_t> as Luminosity;

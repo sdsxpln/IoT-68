@@ -24,7 +24,7 @@ implementation{
 	components new AMReceiverC(0x01) as AMR1;
 	components new AMReceiverC(0x02) as AMR2;
 	components new AMReceiverC(0x03) as AMR3;
-	components new AMReceiverC(0x04) as AM4;
+	components new AMReceiverC(0x04) as AMR4;
 	components new DemoSensorC() as TempC;
 	components new DemoSensorC() as PhotoC;
 
@@ -33,14 +33,15 @@ implementation{
 	App.Leds -> LedsC;
 	App.Packet -> AMSenderC;
 	App.AMPacket -> AMSenderC;
-	App.AMS1 -> AMSenderC;
-	App.AMS2 -> AMSenderC;
-	App.AMS3 -> AMSenderC;
-	App.AMS4 -> AMSenderC;
-	App.AMR1 -> AMReceiverC;
-	App.AMR2 -> AMReceiverC;
-	App.AMR3 -> AMReceiverC;
-	App.AMR4 -> AMReceiverC;
+	App.AMSend -> AMSenderC;
+	App.AMS1 -> AMS1;
+	App.AMS2 -> AMS2;
+	App.AMS3 -> AMS3;
+	App.AMS4 -> AMS4;
+	App.AMR1 -> AMR1;
+	App.AMR2 -> AMR2;
+	App.AMR3 -> AMR3;
+	App.AMR4 -> AMR4;
 	App.RadioControl -> ActiveMessageC;
 	App.Temperature -> TempC;
 	App.Luminosity -> PhotoC;
