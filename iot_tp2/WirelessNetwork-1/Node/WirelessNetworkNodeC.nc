@@ -40,9 +40,9 @@ implementation {
 	uint16_t lumVal;
 	
 	// Use LEDs to report various status issues.
-  void report_received() { call Leds.led0Toggle(); }
-  void report_broadcast() { call Leds.led1Toggle(); }
-  void report_reponse() { call Leds.led2Toggle(); }
+	void report_received() { call Leds.led0Toggle(); }
+	void report_broadcast() { call Leds.led1Toggle(); }
+	void report_reponse() { call Leds.led2Toggle(); }
 
 
 	event void Boot.booted(){
@@ -59,7 +59,7 @@ implementation {
 
 	event void RadioControl.stopDone(error_t err) { } // do nothing
 
-task void respondTopoReq()	{
+	task void respondTopoReq()	{
 		message_t output;
 		WirelessNetworkPayloadMsg2* topoReq = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
 		topoReq->pl_idMsg = versionID;
@@ -111,52 +111,76 @@ task void respondTopoReq()	{
 			report_broadcast();
 	}
 
-	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
+	event message_t* AMR1.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
 
 		call Leds.led0Toggle();
 
-		if (type == AM_WIRELESSNETWORKPAYLOADMSG1) {
-			if (len == sizeof(WirelessNetworkPayloadMsg1)) {
-				WirelessNetworkPayloadMsg1* req = (WirelessNetworkPayloadMsg1*) payload;
+		if (type == AM_WIRELESSNETWORKPAYLOADMSG1 && len == sizeof(WirelessNetworkPayloadMsg1)) {
 
-				if (req->pl_idMsg > versionID) {
-					parentNode = call AMPacket.source(msg);
-					versionID = req->pl_idMsg;
-					post	respondTopoReq();
-					
-				}
-			}
-		} else if (type == AM_WIRELESSNETWORKPAYLOADMSG3) {
-			if (len == sizeof(WirelessNetworkPayloadMsg3)) {
-				WirelessNetworkPayloadMsg3* req	= (WirelessNetworkPayloadMsg3*) payload;
+			WirelessNetworkPayloadMsg1* req = (WirelessNetworkPayloadMsg1*) payload;
 
-				if (req->pl_idMsg > versionID) {
-					versionID = req->pl_idMsg;
-					report_received();
-					post respondSensorReq();
-				}
+			if (req->pl_idMsg > versionID) {
+				parentNode = call AMPacket.source(msg);
+				versionID = req->pl_idMsg;
+				post	respondTopoReq();
+				
 			}
-		} else if(type == AM_WIRELESSNETWORKPAYLOADMSG2 || type == AM_WIRELESSNETWORKPAYLOADMSG4){
-			if (len == sizeof(WirelessNetworkPayloadMsg4) ) {
-				WirelessNetworkPayloadMsg4* req	= (WirelessNetworkPayloadMsg4*) payload;
-				if (req->pl_idMsg > versionID) {
-					versionID = req->pl_idMsg;
-					forwardSensorReq(payload);
-				}
-			} else if(len == sizeof(WirelessNetworkPayloadMsg2)){
-				WirelessNetworkPayloadMsg2* req	= (WirelessNetworkPayloadMsg2*) payload;
-				if (req->pl_idMsg > versionID) {
-					versionID = req->pl_idMsg;
-					forwardTopoReq(payload);
-				}
-			}
-			
 		}
+
 
 		return msg;
 	}
 	
+	event message_t* AMR2.receive(message_t* msg, void* payload, uint8_t len) {
+		am_id_t type = call AMPacket.type(msg);
+
+		call Leds.led0Toggle();
+		if (type == AM_WIRELESSNETWORKPAYLOADMSG2 && len == sizeof(WirelessNetworkPayloadMsg4)){
+			WirelessNetworkPayloadMsg4* req	= (WirelessNetworkPayloadMsg4*) payload;
+			if (req->pl_idMsg > versionID) {
+				versionID = req->pl_idMsg;
+				forwardSensorReq(payload);
+			}
+		}
+		return msg;
+	}
+
+	event message_t* AMR3.receive(message_t* msg, void* payload, uint8_t len) {
+		am_id_t type = call AMPacket.type(msg);
+
+		call Leds.led0Toggle();
+		if (type == AM_WIRELESSNETWORKPAYLOADMSG3 && len == sizeof(WirelessNetworkPayloadMsg3)) {
+
+			WirelessNetworkPayloadMsg3* req	= (WirelessNetworkPayloadMsg3*) payload;
+
+			if (req->pl_idMsg > versionID) {
+				versionID = req->pl_idMsg;
+				report_received();
+				post respondSensorReq();
+			}
+
+		}
+		return msg;
+	}
+
+	event message_t* AMR4.receive(message_t* msg, void* payload, uint8_t len) {
+		am_id_t type = call AMPacket.type(msg);
+
+		call Leds.led0Toggle();
+
+		if(type == AM_WIRELESSNETWORKPAYLOADMSG4 && len == sizeof(WirelessNetworkPayloadMsg2)){
+
+			WirelessNetworkPayloadMsg2* req	= (WirelessNetworkPayloadMsg2*) payload;
+			if (req->pl_idMsg > versionID) {
+				versionID = req->pl_idMsg;
+				forwardTopoReq(payload);
+			}
+
+
+		}
+		return msg;
+	}
 
 	event void AMSend.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
