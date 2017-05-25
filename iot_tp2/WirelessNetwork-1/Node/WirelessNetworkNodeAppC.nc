@@ -17,8 +17,14 @@ implementation{
 	components MainC;
 	components LedsC;
 	components ActiveMessageC;
-	components new AMSenderC(0x02);
-	components new AMReceiverC(AM_WIRELESSNETWORKNODE);
+	components new AMSenderC(0x01) as AMS1;
+	components new AMSenderC(0x02) as ASM2;
+	components new AMSenderC(0x03) as ASM3;
+	components new AMSenderC(0x04) as ASM4;
+	components new AMReceiverC(0x01) as AMR1;
+	components new AMReceiverC(0x02) as AMR2;
+	components new AMReceiverC(0x03) as AMR3;
+	components new AMReceiverC(0x04) as AM4;
 	components new DemoSensorC() as TempC;
 	components new DemoSensorC() as PhotoC;
 
@@ -27,8 +33,14 @@ implementation{
 	App.Leds -> LedsC;
 	App.Packet -> AMSenderC;
 	App.AMPacket -> AMSenderC;
-	App.AMSend -> AMSenderC;
-	App.Receive -> AMReceiverC;
+	App.AMS1 -> AMSenderC;
+	App.AMS2 -> AMSenderC;
+	App.AMS3 -> AMSenderC;
+	App.AMS4 -> AMSenderC;
+	App.AMR1 -> AMReceiverC;
+	App.AMR2 -> AMReceiverC;
+	App.AMR3 -> AMReceiverC;
+	App.AMR4 -> AMReceiverC;
 	App.RadioControl -> ActiveMessageC;
 	App.Temperature -> TempC;
 	App.Luminosity -> PhotoC;
