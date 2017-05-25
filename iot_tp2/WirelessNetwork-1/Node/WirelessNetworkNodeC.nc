@@ -35,7 +35,7 @@ implementation {
 	bool busy = FALSE;
 	message_t pkt;
 	uint16_t versionID = 0;
-	am_addr_t parentNode;
+	am_addr_t parentNode = 0;
 	uint16_t temperatureVal;
 	uint16_t lumVal;
 	
@@ -95,7 +95,7 @@ implementation {
 	
 	void forwardTopoReq(void* payload){
 				
-		if(call	AMS1.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
+		if(call	AMS1.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg1)) != SUCCESS)
 			forwardTopoReq(payload);
 		else
 			report_broadcast();
@@ -105,7 +105,7 @@ implementation {
 
 	void forwardSensorReq(void* payload){
 		
-		if(call	AMS3.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
+		if(call	AMS3.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg3)) != SUCCESS)
 			forwardTopoReq(payload);		
 		else
 			report_broadcast();
@@ -123,7 +123,7 @@ implementation {
 				report_received();
 				parentNode = call AMPacket.source(msg);
 				versionID = req->pl_idMsg;
-				respondTopoReq();
+				post respondTopoReq();
 			}
 		}
 
@@ -153,7 +153,7 @@ implementation {
 			if (req->pl_idMsg > versionID) {
 				report_received();
 				versionID = req->pl_idMsg;
-				respondSensorReq();
+				post respondSensorReq();
 			}
 
 		}
@@ -178,27 +178,27 @@ implementation {
 
 	event void AMS1.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
-			respondTopoReq();
+			WirelessNetworkPayloadMsg1* payload = (WirelessNetworkPayloadMsg1*) call Packet.getPayload(msg,sizeof(WirelessNetworkPayloadMsg1));
+			forwardTopoReq(payload);
 		}
 	}
 
 	event void AMS2.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
-			WirelessNetworkPayloadMsg2* payload = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
-			forwardSensorReq(payload);
+			post respondTopoReq();
 		}
 	}
 
 	event void AMS3.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
-			respondSensorReq();
+			WirelessNetworkPayloadMsg3* payload = (WirelessNetworkPayloadMsg3*) call Packet.getPayload(msg,sizeof(WirelessNetworkPayloadMsg3));
+			forwardSensorReq(payload);
 		}
 	}
 
 	event void AMS4.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
-			WirelessNetworkPayloadMsg4* payload = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
-			forwardTopoReq(payload);
+			post respondSensorReq();
 		}
 	}
 
