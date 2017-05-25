@@ -6,7 +6,7 @@ enum {
 };
 
 // resposta de topologia
-typedef nx_struct WirelessNetworkPayloadMsg{
+typedef nx_struct WirelessNetworkPayloadMsg2{
   nx_uint16_t pl_idMsg;
   nx_uint16_t pl_parentNode;
   nx_uint16_t pl_originNode;

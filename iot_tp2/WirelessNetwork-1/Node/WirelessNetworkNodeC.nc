@@ -8,7 +8,7 @@
 #include "WirelessNetworkMsg4.h"
 //#include <time.h>
 
-module WirelessNetworkNodeC{
+module WirelessNetworkNodeC @safe(){
 
 	uses interface Boot;
 	uses interface Packet;
@@ -18,6 +18,8 @@ module WirelessNetworkNodeC{
 	uses interface SplitControl as AMControl;
 	uses interface Read<uint16_t> as Temperature;
 	uses interface Read<uint16_t> as Luminosity;
+  uses interface Leds;
+
 }
 
 implementation {
@@ -29,13 +31,20 @@ implementation {
 	uint16_t temperatureVal;
 	uint16_t lumVal;
 	
-	
+	// Use LEDs to report various status issues.
+  void report_received() { call Leds.led0Toggle(); }
+  void report_broadcast() { call Leds.led1Toggle(); }
+  void report_reponse() { call Leds.led2Toggle(); }
+
+
 	event void Boot.booted(){
+		report_broadcast();	
 		call AMControl.start();  //initializing radios
 	}
 
 	event void AMControl.startDone(error_t err) {
 		if(err != SUCCESS) {
+			report_received();
 			call AMControl.start();
 		}
 	}
@@ -51,6 +60,8 @@ task void respondTopoReq()	{
 
 		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
 			post respondTopoReq();
+		else
+			report_reponse();
 	}
 
 	task void respondSensorReq()	{
@@ -69,7 +80,8 @@ task void respondTopoReq()	{
 		
 		if(call	AMSend.send(parentNode,	&output, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			post respondSensorReq();
-		
+		else
+			report_reponse();
 	}
 
 	
@@ -77,7 +89,8 @@ task void respondTopoReq()	{
 				
 		if(call	AMSend.send(AM_BROADCAST_ADDR,	payload, sizeof(WirelessNetworkPayloadMsg2)) != SUCCESS)
 			forwardTopoReq(payload);
-		
+		else
+			report_broadcast();
 		// se der errado, trocar a msg output por sendTopoReq
 		
 	}
@@ -86,12 +99,14 @@ task void respondTopoReq()	{
 		
 		if(call	AMSend.send(parentNode,	payload, sizeof(WirelessNetworkPayloadMsg4)) != SUCCESS)
 			forwardTopoReq(payload);		
-		
+		else
+			report_broadcast();
 	}
 
 
 	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
+		report_received();
 
 		if (type == AM_WIRELESSNETWORKPAYLOADMSG1) {
 			if (len == sizeof(WirelessNetworkPayloadMsg1)) {
@@ -110,6 +125,7 @@ task void respondTopoReq()	{
 
 				if (req->pl_idMsg > versionID) {
 					versionID = req->pl_idMsg;
+					report_received();
 					post respondSensorReq();
 				}
 			}
@@ -137,8 +153,8 @@ task void respondTopoReq()	{
 	event void AMSend.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
 			am_id_t type = call AMPacket.type(msg);
-			if (type == AM_TOPO_REQ) post	respondTopoReq();
-			else if (type == AM_SENSOR_RESPONSE) post respondSensorReq();
+			if (type == AM_WIRELESSNETWORKPAYLOADMSG1) post	respondTopoReq();
+			else if (type == AM_WIRELESSNETWORKPAYLOADMSG3) post respondSensorReq();
 		}
 	}
 

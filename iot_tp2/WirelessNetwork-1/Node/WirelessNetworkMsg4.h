@@ -6,7 +6,7 @@ enum {
 };
 
 // resposta de leitura
-typedef nx_struct WirelessNetworkPayloadMsg{
+typedef nx_struct WirelessNetworkPayloadMsg4{
   nx_uint16_t pl_idMsg;
   nx_uint16_t pl_LumData;
   nx_uint16_t pl_TempData;

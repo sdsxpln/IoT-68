@@ -7,7 +7,7 @@ enum {
 };
 
 // requisicao de leitura
-typedef nx_struct WirelessNetworkPayloadMsg{
+typedef nx_struct WirelessNetworkPayloadMsg3{
   nx_uint16_t pl_idMsg;
 } WirelessNetworkPayloadMsg3;
 

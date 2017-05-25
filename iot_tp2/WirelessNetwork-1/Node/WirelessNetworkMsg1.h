@@ -2,11 +2,12 @@
 #define WIRELESSNETWORKMSG1_H__
 
 enum {
-	AM_WIRELESSNETWORKPAYLOADMSG1 = 1
+	AM_WIRELESSNETWORKPAYLOADMSG1 = 1,
+	AM_NODE_ID = 5
 };
 
 // requisicao da topologia
-typedef nx_struct WirelessNetworkPayloadMsg{
+typedef nx_struct WirelessNetworkPayloadMsg1{
   nx_uint16_t pl_idMsg; //payload id message
 } WirelessNetworkPayloadMsg1;
 
