@@ -15,7 +15,7 @@ module WirelessNetworkNodeC @safe(){
 	uses interface AMPacket;
 	uses interface AMSend;
 	uses interface Receive;
-	uses interface SplitControl as AMControl;
+	uses interface SplitControl as RadioControl;
 	uses interface Read<uint16_t> as Temperature;
 	uses interface Read<uint16_t> as Luminosity;
   uses interface Leds;
@@ -38,21 +38,21 @@ implementation {
 
 
 	event void Boot.booted(){
-		report_broadcast();	
-		call AMControl.start();  //initializing radios
+		call Leds.led1On();	
+		call RadioControl.start();  //initializing radios
 	}
 
-	event void AMControl.startDone(error_t err) {
+	event void RadioControl.startDone(error_t err) {
 		if(err != SUCCESS) {
 			report_received();
-			call AMControl.start();
+			call RadioControl.start();
 		}
 	}
 
-	event void AMControl.stopDone(error_t err) { } // do nothing
+	event void RadioControl.stopDone(error_t err) { } // do nothing
 
 task void respondTopoReq()	{
-		WirelessNetworkPayloadMsg2 output;
+		message_t output;
 		WirelessNetworkPayloadMsg2* topoReq = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
 		topoReq->pl_idMsg = versionID;
 		topoReq->pl_parentNode = parentNode;
@@ -65,7 +65,7 @@ task void respondTopoReq()	{
 	}
 
 	task void respondSensorReq()	{
-		WirelessNetworkPayloadMsg4 output;
+		message_t output;
 		WirelessNetworkPayloadMsg4* sensorReq = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
 		
 		//Tenta pegar os dados dos sensores
@@ -103,10 +103,10 @@ task void respondTopoReq()	{
 			report_broadcast();
 	}
 
-
 	event message_t* Receive.receive(message_t* msg, void* payload, uint8_t len) {
 		am_id_t type = call AMPacket.type(msg);
-		report_received();
+
+		call Leds.led0Toggle();
 
 		if (type == AM_WIRELESSNETWORKPAYLOADMSG1) {
 			if (len == sizeof(WirelessNetworkPayloadMsg1)) {

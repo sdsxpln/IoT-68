@@ -3,7 +3,6 @@
 
 enum {
 	AM_WIRELESSNETWORKPAYLOADMSG3 = 3
-
 };
 
 // requisicao de leitura

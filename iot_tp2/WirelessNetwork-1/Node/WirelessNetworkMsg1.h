@@ -3,7 +3,7 @@
 
 enum {
 	AM_WIRELESSNETWORKPAYLOADMSG1 = 1,
-	AM_NODE_ID = 5
+	AM_WIRELESSNETWORKNODE = 0x01
 };
 
 // requisicao da topologia

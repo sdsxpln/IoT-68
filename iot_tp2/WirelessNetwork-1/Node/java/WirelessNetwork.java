@@ -10,7 +10,7 @@ public class WirelessNetwork implements MessageListener {
 	private int idMsg = 0;
 
 	public WirelessNetwork() {
-		this.BaseStation = new MoteIF(PrintStreamMessenger.err);;
+		this.BaseStation = new MoteIF(PrintStreamMessenger.err);
 		this.BaseStation.registerListener(new WirelessNetworkMsg2(), this); 
 		this.BaseStation.registerListener(new WirelessNetworkMsg4(), this); 
 		//ver na doc desse registerListener se pode ter diferentes tipos de mensagens 
@@ -28,6 +28,7 @@ public class WirelessNetwork implements MessageListener {
 		try {
 				payload.set_pl_idMsg(idMsg);
 				incrIdMsg();
+				System.out.println(payload.toString());
 				BaseStation.send(MoteIF.TOS_BCAST_ADDR, payload);
 		}
 		catch (IOException exception) {
@@ -53,6 +54,8 @@ public class WirelessNetwork implements MessageListener {
 
 	public synchronized void messageReceived(int to, Message message) {
 		int amType = message.amType();
+
+		System.out.println("Tipo: " + amType);
 
 		switch (amType) {
 			case WirelessNetworkMsg2.AM_TYPE:
