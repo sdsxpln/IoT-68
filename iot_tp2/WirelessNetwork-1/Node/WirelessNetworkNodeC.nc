@@ -123,8 +123,7 @@ implementation {
 			if (req->pl_idMsg > versionID) {
 				parentNode = call AMPacket.source(msg);
 				versionID = req->pl_idMsg;
-				post	respondTopoReq();
-				
+				post respondTopoReq();
 			}
 		}
 
@@ -182,15 +181,31 @@ implementation {
 		return msg;
 	}
 
-	event void AMSend.sendDone(message_t* msg, error_t err)	{
+	event void AMS1.sendDone(message_t* msg, error_t err)	{
 		if(err != SUCCESS){
-			am_id_t type = call AMPacket.type(msg);
-			if (type == AM_WIRELESSNETWORKPAYLOADMSG1) post	respondTopoReq();
-			else if (type == AM_WIRELESSNETWORKPAYLOADMSG3) post respondSensorReq();
+			respondTopoReq();
 		}
 	}
 
-	
+	event void AMS2.sendDone(message_t* msg, error_t err)	{
+		if(err != SUCCESS){
+			WirelessNetworkPayloadMsg2* payload = (WirelessNetworkPayloadMsg2*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg2));
+			forwardSensorReq(payload);
+		}
+	}
+
+	event void AMS3.sendDone(message_t* msg, error_t err)	{
+		if(err != SUCCESS){
+			respondSensorReq();
+		}
+	}
+
+	event void AMS4.sendDone(message_t* msg, error_t err)	{
+		if(err != SUCCESS){
+			WirelessNetworkPayloadMsg4* payload = (WirelessNetworkPayloadMsg4*) call Packet.getPayload(&output,sizeof(WirelessNetworkPayloadMsg4));
+			forwardTopoReq(payload);
+		}
+	}
 
 	event void Temperature.readDone( error_t result, uint16_t val ){
 		if(result == SUCCESS){
