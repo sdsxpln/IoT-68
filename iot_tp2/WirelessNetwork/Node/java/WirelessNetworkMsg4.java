@@ -88,13 +88,13 @@ public class WirelessNetworkMsg4 extends net.tinyos.message.Message {
         s += "  [pl_idMsg=0x"+Long.toHexString(get_pl_idMsg())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
+        s += "  [pl_Origin=0x"+Long.toHexString(get_pl_Origin())+"]\n";
+      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
+      try {
         s += "  [pl_LumData=0x"+Long.toHexString(get_pl_LumData())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [pl_TempData=0x"+Long.toHexString(get_pl_TempData())+"]\n";
-      } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
-      try {
-        s += "  [pl_Origin=0x"+Long.toHexString(get_pl_Origin())+"]\n";
       } catch (ArrayIndexOutOfBoundsException aioobe) { /* Skip field */ }
       try {
         s += "  [extra_data=";
@@ -172,9 +172,72 @@ public class WirelessNetworkMsg4 extends net.tinyos.message.Message {
     }
 
     /////////////////////////////////////////////////////////
-    // Accessor methods for field: pl_LumData
+    // Accessor methods for field: pl_Origin
     //   Field type: int, unsigned
     //   Offset (bits): 16
+    //   Size (bits): 16
+    /////////////////////////////////////////////////////////
+
+    /**
+     * Return whether the field 'pl_Origin' is signed (false).
+     */
+    public static boolean isSigned_pl_Origin() {
+        return false;
+    }
+
+    /**
+     * Return whether the field 'pl_Origin' is an array (false).
+     */
+    public static boolean isArray_pl_Origin() {
+        return false;
+    }
+
+    /**
+     * Return the offset (in bytes) of the field 'pl_Origin'
+     */
+    public static int offset_pl_Origin() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the offset (in bits) of the field 'pl_Origin'
+     */
+    public static int offsetBits_pl_Origin() {
+        return 16;
+    }
+
+    /**
+     * Return the value (as a int) of the field 'pl_Origin'
+     */
+    public int get_pl_Origin() {
+        return (int)getUIntBEElement(offsetBits_pl_Origin(), 16);
+    }
+
+    /**
+     * Set the value of the field 'pl_Origin'
+     */
+    public void set_pl_Origin(int value) {
+        setUIntBEElement(offsetBits_pl_Origin(), 16, value);
+    }
+
+    /**
+     * Return the size, in bytes, of the field 'pl_Origin'
+     */
+    public static int size_pl_Origin() {
+        return (16 / 8);
+    }
+
+    /**
+     * Return the size, in bits, of the field 'pl_Origin'
+     */
+    public static int sizeBits_pl_Origin() {
+        return 16;
+    }
+
+    /////////////////////////////////////////////////////////
+    // Accessor methods for field: pl_LumData
+    //   Field type: int, unsigned
+    //   Offset (bits): 32
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -196,14 +259,14 @@ public class WirelessNetworkMsg4 extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'pl_LumData'
      */
     public static int offset_pl_LumData() {
-        return (16 / 8);
+        return (32 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'pl_LumData'
      */
     public static int offsetBits_pl_LumData() {
-        return 16;
+        return 32;
     }
 
     /**
@@ -237,7 +300,7 @@ public class WirelessNetworkMsg4 extends net.tinyos.message.Message {
     /////////////////////////////////////////////////////////
     // Accessor methods for field: pl_TempData
     //   Field type: int, unsigned
-    //   Offset (bits): 32
+    //   Offset (bits): 48
     //   Size (bits): 16
     /////////////////////////////////////////////////////////
 
@@ -259,14 +322,14 @@ public class WirelessNetworkMsg4 extends net.tinyos.message.Message {
      * Return the offset (in bytes) of the field 'pl_TempData'
      */
     public static int offset_pl_TempData() {
-        return (32 / 8);
+        return (48 / 8);
     }
 
     /**
      * Return the offset (in bits) of the field 'pl_TempData'
      */
     public static int offsetBits_pl_TempData() {
-        return 32;
+        return 48;
     }
 
     /**
@@ -294,69 +357,6 @@ public class WirelessNetworkMsg4 extends net.tinyos.message.Message {
      * Return the size, in bits, of the field 'pl_TempData'
      */
     public static int sizeBits_pl_TempData() {
-        return 16;
-    }
-
-    /////////////////////////////////////////////////////////
-    // Accessor methods for field: pl_Origin
-    //   Field type: int, unsigned
-    //   Offset (bits): 48
-    //   Size (bits): 16
-    /////////////////////////////////////////////////////////
-
-    /**
-     * Return whether the field 'pl_Origin' is signed (false).
-     */
-    public static boolean isSigned_pl_Origin() {
-        return false;
-    }
-
-    /**
-     * Return whether the field 'pl_Origin' is an array (false).
-     */
-    public static boolean isArray_pl_Origin() {
-        return false;
-    }
-
-    /**
-     * Return the offset (in bytes) of the field 'pl_Origin'
-     */
-    public static int offset_pl_Origin() {
-        return (48 / 8);
-    }
-
-    /**
-     * Return the offset (in bits) of the field 'pl_Origin'
-     */
-    public static int offsetBits_pl_Origin() {
-        return 48;
-    }
-
-    /**
-     * Return the value (as a int) of the field 'pl_Origin'
-     */
-    public int get_pl_Origin() {
-        return (int)getUIntBEElement(offsetBits_pl_Origin(), 16);
-    }
-
-    /**
-     * Set the value of the field 'pl_Origin'
-     */
-    public void set_pl_Origin(int value) {
-        setUIntBEElement(offsetBits_pl_Origin(), 16, value);
-    }
-
-    /**
-     * Return the size, in bytes, of the field 'pl_Origin'
-     */
-    public static int size_pl_Origin() {
-        return (16 / 8);
-    }
-
-    /**
-     * Return the size, in bits, of the field 'pl_Origin'
-     */
-    public static int sizeBits_pl_Origin() {
         return 16;
     }
 

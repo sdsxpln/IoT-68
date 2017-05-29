@@ -7,7 +7,7 @@ import net.tinyos.util.*;
 public class WirelessNetwork implements MessageListener {
 	// nao sei se esse MoteIF é "padrao" (se tem que deixar assim ou se tem que mudar)
 	private MoteIF BaseStation;
-	private int idMsg = 0;
+	private int idMsg = 1;
 
 	public WirelessNetwork() {
 		this.BaseStation = new MoteIF(PrintStreamMessenger.err);
@@ -22,7 +22,7 @@ public class WirelessNetwork implements MessageListener {
 	}
 
 	public void sendType1Packets() {
-		//int counter = 0;
+
 		WirelessNetworkMsg1 payload = new WirelessNetworkMsg1();
 
 		try {
@@ -38,12 +38,13 @@ public class WirelessNetwork implements MessageListener {
 	}
 
 	public void sendType3Packets() {
-		//int counter = 0;
+
 		WirelessNetworkMsg3 payload = new WirelessNetworkMsg3();
 
 		try {
 				payload.set_pl_idMsg(idMsg);
 				incrIdMsg();
+				System.out.println(payload.toString());
 				BaseStation.send(MoteIF.TOS_BCAST_ADDR, payload);
 		}
 		catch (IOException exception) {
@@ -96,15 +97,35 @@ public class WirelessNetwork implements MessageListener {
 
 	public static void main(String[] args) throws Exception {
 		WirelessNetwork serial = new WirelessNetwork();
+		Thread.sleep(2000);
 		serial.sendType1Packets();
-
+		Thread.sleep(2000);
+		serial.sendType1Packets();
+		Thread.sleep(2000);
+		
 		while (true) {
-   		try {
-			 	System.out.println("Aguardando dados...");
-				serial.sendType1Packets();
-			 	Thread.sleep(2000);
-      } catch (InterruptedException exception) {}
+	   		try {
+				 	System.out.println("Aguardando dados...");
+					serial.sendType3Packets();
+				 	Thread.sleep(2000);
+	      		} catch (InterruptedException exception) {}
 		}
+/* 
+		for (int i = 0 ; i < 25 ; i++){
+			try {
+				 	System.out.println("Aguardando dados...");
+					serial.sendType1Packets();
+				 	Thread.sleep(2000);
+	      		} catch (InterruptedException exception) {}
+		}
+		for (int i = 0 ; i < 25	 ; i++){
+			try {
+				 	System.out.println("Aguardando dados...");
+					serial.sendType3Packets();
+				 	Thread.sleep(2000);
+	      		} catch (InterruptedException exception) {}
+		}
+*/
 	}
 }
 
