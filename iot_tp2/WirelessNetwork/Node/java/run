@@ -4,4 +4,4 @@ if cygpath -w / >/dev/null 2>/dev/null; then
 else
   CLASSPATH="wirelessNetwork.jar:$CLASSPATH"
 fi
-java WirelessNetwork
+java WirelessNetwork $1 $2

@@ -96,36 +96,19 @@ public class WirelessNetwork implements MessageListener {
 
 
 	public static void main(String[] args) throws Exception {
+
+		int value = Integer.parseInt(args[0]);	
+		int sleepTime = Integer.parseInt(args[1]);	
 		WirelessNetwork serial = new WirelessNetwork();
-		Thread.sleep(2000);
-		serial.sendType1Packets();
-		Thread.sleep(2000);
-		serial.sendType1Packets();
-		Thread.sleep(2000);
 		
-		while (true) {
-	   		try {
-				 	System.out.println("Aguardando dados...");
-					serial.sendType3Packets();
-				 	Thread.sleep(2000);
-	      		} catch (InterruptedException exception) {}
-		}
-/* 
-		for (int i = 0 ; i < 25 ; i++){
-			try {
-				 	System.out.println("Aguardando dados...");
-					serial.sendType1Packets();
-				 	Thread.sleep(2000);
-	      		} catch (InterruptedException exception) {}
-		}
-		for (int i = 0 ; i < 25	 ; i++){
-			try {
-				 	System.out.println("Aguardando dados...");
-					serial.sendType3Packets();
-				 	Thread.sleep(2000);
-	      		} catch (InterruptedException exception) {}
-		}
-*/
+		if (sleepTime > 5000) sleepTime = 5000;
+		System.out.println( "valor: " + value + " sleepTime: " + sleepTime);
+		
+		if (value == 1)	serial.sendType1Packets();
+		else if(value == 2 ) serial.sendType3Packets();
+
+		Thread.sleep(sleepTime);
+		
 	}
 }
 
