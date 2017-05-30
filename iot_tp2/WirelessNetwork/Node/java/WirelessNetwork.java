@@ -1,115 +1,159 @@
 import java.io.IOException;
-
 import net.tinyos.message.*;
 import net.tinyos.packet.*;
 import net.tinyos.util.*;
+import java.io.*;
 
 public class WirelessNetwork implements MessageListener {
-	// nao sei se esse MoteIF é "padrao" (se tem que deixar assim ou se tem que mudar)
-	private MoteIF BaseStation;
-	private int idMsg = 1;
 
-	public WirelessNetwork() {
-		this.BaseStation = new MoteIF(PrintStreamMessenger.err);
-		this.BaseStation.registerListener(new WirelessNetworkMsg2(), this); 
-		this.BaseStation.registerListener(new WirelessNetworkMsg4(), this); 
-		//ver na doc desse registerListener se pode ter diferentes tipos de mensagens 
-		// associadas a um nó ou se é só uma msg para cada nó
-		// Se é só as mensagens que ele envia ou se conta as msgs que ele recebe tb
-		// se puder ter mais mensagens, isso talvez de certo:
-		//this.BaseStation.registerListenet(new WirelessNetworkMsg3(), this);
+        private MoteIF BaseStation;
+        private int idMsg = 1;
+        private String topoString = "";
+        private String dataQueue = "";
 
-	}
+        public WirelessNetwork() {
+                this.BaseStation = new MoteIF(PrintStreamMessenger.err);
+                this.BaseStation.registerListener(new WirelessNetworkMsg2(), this);
+                this.BaseStation.registerListener(new WirelessNetworkMsg4(), this);
 
-	public void sendType1Packets() {
+        }
 
-		WirelessNetworkMsg1 payload = new WirelessNetworkMsg1();
+        public void sendType1Packets() {
 
-		try {
-				payload.set_pl_idMsg(idMsg);
-				incrIdMsg();
-				System.out.println(payload.toString());
-				BaseStation.send(MoteIF.TOS_BCAST_ADDR, payload);
-		}
-		catch (IOException exception) {
-			System.err.println("Exception thrown when sending packets. Exiting.");
-			System.err.println(exception);
-		}
-	}
+                WirelessNetworkMsg1 payload = new WirelessNetworkMsg1();
 
-	public void sendType3Packets() {
+                try {
+                                payload.set_pl_idMsg(idMsg);
+                                incrIdMsg();
+                                System.out.println(payload.toString());
+                                BaseStation.send(MoteIF.TOS_BCAST_ADDR, payload);
+                }
+                catch (IOException exception) {
+                        System.err.println("Exception thrown when sending packets. Exiting.");
+                        System.err.println(exception);
+                }
+        }
 
-		WirelessNetworkMsg3 payload = new WirelessNetworkMsg3();
+        public void sendType3Packets() {
 
-		try {
-				payload.set_pl_idMsg(idMsg);
-				incrIdMsg();
-				System.out.println(payload.toString());
-				BaseStation.send(MoteIF.TOS_BCAST_ADDR, payload);
-		}
-		catch (IOException exception) {
-			System.err.println("Exception thrown when sending packets. Exiting.");
-			System.err.println(exception);
-		}
-	}
+                WirelessNetworkMsg3 payload = new WirelessNetworkMsg3();
 
-	public synchronized void messageReceived(int to, Message message) {
-		int amType = message.amType();
+                try {
+                                payload.set_pl_idMsg(idMsg);
+                                incrIdMsg();
+                                System.out.println(payload.toString());
+                                BaseStation.send(MoteIF.TOS_BCAST_ADDR, payload);
+                }
+                catch (IOException exception) {
+                        System.err.println("Exception thrown when sending packets. Exiting.");
+                        System.err.println(exception);
+ 				}
+        }
 
-		System.out.println("Tipo: " + amType);
+        public synchronized void messageReceived(int to, Message message) {
+                int amType = message.amType();
 
-		switch (amType) {
-			case WirelessNetworkMsg2.AM_TYPE:
-				WirelessNetworkMsg2 msg = (WirelessNetworkMsg2)message;
-				System.out.println("Tipo: " + amType);
-				System.out.println("ID: " + msg.get_pl_idMsg());
-				System.out.println("Origem: " + msg.get_pl_originNode());
-				System.out.println("Pai: " + msg.get_pl_parentNode());
-				System.out.println("-------------------------------------");
-				break;
-			case WirelessNetworkMsg4.AM_TYPE:
-				WirelessNetworkMsg4 msg4 = (WirelessNetworkMsg4)message;
-				System.out.println("Tipo: " + amType);
-				System.out.println("ID: " + msg4.get_pl_idMsg());
-				System.out.println("Origem: " + msg4.get_pl_Origin());
-				System.out.println("Luminosidade: " + msg4.get_pl_LumData());
-				System.out.println("Temperatura: " + msg4.get_pl_TempData());
-				System.out.println("-------------------------------------");
-				break;
-			default:
-				System.err.println("Erro ao ler tipo do pacote AM_TYPE = " + amType);
-				break;
-		}
-	}
+                System.out.println("Tipo: " + amType);
 
-	public void setIdMsg(int x){
-		this.idMsg = x;	
-	}
-	
-	public int getIdMsg(){
-		return this.idMsg;	
-	}
+                switch (amType) {
 
-	public void incrIdMsg(){
-		this.idMsg++;
-	}
+                        case WirelessNetworkMsg2.AM_TYPE:
+                                WirelessNetworkMsg2 msg = (WirelessNetworkMsg2)message;
+                                System.out.println("Tipo: " + amType);
+                                System.out.println("ID: " + msg.get_pl_idMsg());
+                                System.out.println("Origem: " + msg.get_pl_originNode());
+                                System.out.println("Pai: " + msg.get_pl_parentNode());
+                                System.out.println("-------------------------------------");
+                                this.topoString += this.createTopoObject(msg.get_pl_idMsg(), msg.get_pl_originNode(), msg.get_pl_parentNode());
+                                break;
+
+                        case WirelessNetworkMsg4.AM_TYPE:
+                                WirelessNetworkMsg4 msg4 = (WirelessNetworkMsg4)message;
+                                System.out.println("Tipo: " + amType);
+                                System.out.println("ID: " + msg4.get_pl_idMsg());
+                                System.out.println("Origem: " + msg4.get_pl_Origin());
+                                System.out.println("Luminosidade: " + msg4.get_pl_LumData());
+                                System.out.println("Temperatura: " + msg4.get_pl_TempData());
+                                System.out.println("-------------------------------------");
+                                this.dataQueue += this.createDataObject(msg4.get_pl_idMsg(), msg4.get_pl_Origin(), msg4.get_pl_TempData(), msg4.get_pl_LumData());
+                                break;
+
+                        default:
+                                System.err.println("Couldn't read pkg type " + amType);
+                                break;
+                }
+        }
+
+        public void setIdMsg(int x){
+                this.idMsg = x;
+        }
+
+        public int getIdMsg(){
+                return this.idMsg;
+        }
+
+        public void incrIdMsg(){
+                this.idMsg++;
+        }
+
+ 		public String createTopoObject(int id, int origin, int parent){
+                String returnedString = "";
+                returnedString += "{\"versionID\":";
+                returnedString += String.valueOf(id) + ",\"origin\":";
+                returnedString += String.valueOf(origin) + ",\"parent\":";
+                returnedString += String.valueOf(parent);
+                returnedString += "},";
+                return returnedString;
+        }
+
+        public String createDataObject(int id, int origin, int temp, int photo){
+                String returnedString = "";
+                returnedString += "{\"versionID\":";
+                returnedString += String.valueOf(id) + ",\"origin\":";
+                returnedString += String.valueOf(origin) + ",\"temp\":";
+                returnedString += String.valueOf(temp) + ",\"photo\":";
+                returnedString += String.valueOf(photo);
+                returnedString += "},";
+                return returnedString;
+        }
 
 
-	public static void main(String[] args) throws Exception {
+        public void writeResults() {
+                try{
+                        PrintWriter topoWriter = new PrintWriter("topo.txt", "UTF-8");
+                        topoWriter.println("[" + this.topoString + "]");
+                        topoWriter.close();
 
-		int value = Integer.parseInt(args[0]);	
-		int sleepTime = Integer.parseInt(args[1]);	
-		WirelessNetwork serial = new WirelessNetwork();
-		
-		if (sleepTime > 5000) sleepTime = 5000;
-		System.out.println( "valor: " + value + " sleepTime: " + sleepTime);
-		
-		if (value == 1)	serial.sendType1Packets();
-		else if(value == 2 ) serial.sendType3Packets();
+                        PrintWriter dataWriter = new PrintWriter("data.txt", "UTF-8");
+                        dataWriter.println("[" + this.dataQueue + "]");
+                        dataWriter.close();
 
-		Thread.sleep(sleepTime);
-		
-	}
+                } catch (IOException e) {
+                        // do something
+                }
+        }
+
+             public static void main(String[] args) throws Exception {
+
+                if (args.length < 2) {
+                        System.out.println("Sorry bro, I need to args to run");
+                        System.out.println("./run <pkgType> <sleepTime>");
+                        return;
+                }
+
+                int pkgType = Integer.parseInt(args[0]);
+                int sleepTime = Integer.parseInt(args[1]);
+                WirelessNetwork serial = new WirelessNetwork();
+
+                System.out.println( "pkgType: " + pkgType + " sleepTime: " + sleepTime);
+
+                if (pkgType == 1) serial.sendType1Packets();
+                else serial.sendType3Packets();
+
+                Thread.sleep(sleepTime);
+                serial.writeResults();
+                System.out.println("Hey Capitan, I am done! See u later");
+                System.exit(0);
+        }
 }
-
 
